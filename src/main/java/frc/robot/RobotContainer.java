@@ -1,14 +1,14 @@
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.subystem.tracao.tracao;
-
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.subystem.traction.Drive;
 
 public class RobotContainer {
 
-  tracao tracao = new tracao();
+  Drive tracao = new Drive();
   CommandXboxController controle = new CommandXboxController(0);
 
   public RobotContainer() {
@@ -16,13 +16,16 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    controle.a().onTrue(tracao.dizerOla());
+    tracao.setDefaultCommand(tracao.run(() -> {
+          double speed = MathUtil.applyDeadband(controle.getLeftY(), 0.1);
+          double rotacao = MathUtil.applyDeadband(controle.getRightX(), 0.1);
+          double rotation = Math.copySign(rotacao * rotacao, rotacao);
+          tracao.drive.arcadeDrive(speed, rotation);
+        }));
+    controle.a().toggleOnTrue(tracao.commandTurbo());
   }
 
   public Command getAutonomousCommand() {
-    return Commands.sequence(
-      tracao.dizerOla(),
-      tracao.tracaoPor(2),
-      Commands.print("acabou"));
+    return Commands.sequence(tracao.andarDireto(1),tracao.andarDireto(0));
   }
 }
