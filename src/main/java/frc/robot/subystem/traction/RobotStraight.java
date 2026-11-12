@@ -21,13 +21,13 @@ public class RobotStraight extends Command{
 
     @Override
     public void execute() {
-        tracao.andarDireto(Math.signum(metros) * 0.3);        
+        tracao.andarDireto(inicio + Math.signum(metros));        
     }
 
-    @Override
-    public boolean isFinished() {
-        return Math.abs(tracao.mediaAtual() - inicio) >= metros;
-    }
+    // @Override
+    // public boolean isFinished() {
+    //     return Math.abs(tracao.mediaAtual() - inicio) >= metros;
+    // }
 
     @Override
     public void end(boolean interrupted) {

@@ -1,16 +1,16 @@
 package frc.robot.subystem.traction;
 
-import edu.wpi.first.math.controller.PIDController;
+import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.RelativeEncoder;
 
@@ -28,9 +28,9 @@ public class Drive extends SubsystemBase{
 
     RelativeEncoder encoderRightFront = Rightfront.getEncoder();
     RelativeEncoder encoderLeftFront = Leftfront.getEncoder();
-
-    PIDController pidM_Right = new PIDController(0, 0, 0);
-    PIDController pidM_Left = new PIDController(0, 0, 0);
+    
+    SparkClosedLoopController pidM_Right = Rightfront.getClosedLoopController();
+    SparkClosedLoopController pidM_Left = Leftfront.getClosedLoopController();
     
     private static final double VELOCIDADE_NORMAL = 0.7;
     private static final double VELOCIDADE_TURBO = 0.9;
@@ -48,9 +48,13 @@ public class Drive extends SubsystemBase{
         Leftback.configure(LeftBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         RightConfig.inverted(true);
+        RightConfig.encoder.inverted(true);
 
-        SmartDashboard.putData("PID MOTOR E", pidM_Left);
-        SmartDashboard.putData("PID MOTOR D", pidM_Right);
+        RightConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
+        LeftConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
+
+        RightConfig.closedLoop.pid(0.01, 0, 0.005).feedForward.kS(0.5);
+        LeftConfig.closedLoop.pid(0.01,0, 0.005);
 
         LeftConfig.encoder.countsPerRevolution(8192).positionConversionFactor(Math.PI * 0.14);
         RightConfig.encoder.countsPerRevolution(8192).positionConversionFactor(Math.PI * 0.14);
@@ -71,17 +75,16 @@ public class Drive extends SubsystemBase{
             () -> setTurbo(false) );
     }
 
+    public void resetarEncoder() {
+        encoderLeftFront.setPosition(0);
+        encoderRightFront.setPosition(0);
+    }
+
     public void andarDireto(double metros) {
-        pidM_Left.setSetpoint(metros);
-        pidM_Right.setSetpoint(metros);
-        
-        pidM_Left.setTolerance(0.05);
-        pidM_Right.setTolerance(0.05);
+        pidM_Right.setSetpoint(metros, ControlType.kMAXMotionPositionControl);
+        pidM_Left.setSetpoint(metros, ControlType.kMAXMotionPositionControl);
 
-        double potenciaMotor_L = pidM_Left.calculate(encoderLeftFront.getPosition());
-        double potenciaMotor_R = pidM_Right.calculate(encoderRightFront.getPosition());
-
-        drive.tankDrive(potenciaMotor_L, potenciaMotor_R);
+        drive.feed();
     }
 
     public double mediaAtual() {
