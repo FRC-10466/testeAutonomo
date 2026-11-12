@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subystem.traction.Drive;
+import frc.robot.subystem.traction.RobotStraight;
 
 public class RobotContainer {
 
@@ -17,8 +18,8 @@ public class RobotContainer {
 
   private void configureBindings() {
     tracao.setDefaultCommand(tracao.run(() -> {
-          double speed = MathUtil.applyDeadband(controle.getLeftY(), 0.1);
-          double rotacao = MathUtil.applyDeadband(controle.getRightX(), 0.1);
+          double speed = MathUtil.applyDeadband(-controle.getLeftY(), 0.1);
+          double rotacao = MathUtil.applyDeadband(-controle.getRightX(), 0.1);
           double rotation = Math.copySign(rotacao * rotacao, rotacao);
           tracao.drive.arcadeDrive(speed, rotation);
         }));
@@ -26,6 +27,6 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return Commands.sequence(tracao.andarDireto(1),tracao.andarDireto(0));
+    return Commands.sequence( new RobotStraight(tracao, 1));
   }
 }

@@ -6,7 +6,7 @@ public class RobotStraight extends Command{
 
     private final Drive tracao;
     private final double metros;   
-
+    private double inicio;
 
     public RobotStraight(Drive tracao, double metros) {
         this.tracao = tracao;
@@ -16,20 +16,21 @@ public class RobotStraight extends Command{
 
     @Override
     public void initialize() {
-        tracao.mediaAtual();
+        inicio = tracao.mediaAtual();
     }
 
     @Override
-    public void execute() {        
+    public void execute() {
+        tracao.andarDireto(Math.signum(metros) * 0.3);        
     }
 
     @Override
     public boolean isFinished() {
-        
+        return Math.abs(tracao.mediaAtual() - inicio) >= metros;
     }
 
     @Override
     public void end(boolean interrupted) {
-        
+        tracao.StopTraction();
     }
 }
