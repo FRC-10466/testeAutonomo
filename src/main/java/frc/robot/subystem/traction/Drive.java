@@ -1,7 +1,10 @@
 package frc.robot.subystem.traction;
 
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -53,11 +56,17 @@ public class Drive extends SubsystemBase{
         RightConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
         LeftConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
 
-        RightConfig.closedLoop.pid(0.01, 0, 0.005).feedForward.kS(0.5);
-        LeftConfig.closedLoop.pid(0.01,0, 0.005);
+        RightConfig.closedLoop.pid(1, 0, 0.05).feedForward.kS(0.5);
+        LeftConfig.closedLoop.pid(1,0, 0.05).feedForward.kS(0.5);
 
-        LeftConfig.encoder.countsPerRevolution(8192).positionConversionFactor(Math.PI * 0.14);
-        RightConfig.encoder.countsPerRevolution(8192).positionConversionFactor(Math.PI * 0.14);
+        LeftConfig.closedLoop.allowedClosedLoopError(0.005, ClosedLoopSlot.kSlot0);
+        RightConfig.closedLoop.allowedClosedLoopError(0.005, ClosedLoopSlot.kSlot0);
+
+        LeftConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
+        RightConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
+
+        LeftConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(Math.PI * 0.14 / 60);
+        RightConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(Math.PI * 0.14 / 60);
 
         Rightfront.configure(RightConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         Leftfront.configure(LeftConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -81,8 +90,13 @@ public class Drive extends SubsystemBase{
     }
 
     public void andarDireto(double metros) {
+        resetarEncoder();
+
         pidM_Right.setSetpoint(metros, ControlType.kMAXMotionPositionControl);
-        pidM_Left.setSetpoint(metros, ControlType.kMAXMotionPositionControl);
+        pidM_Left.setSetpoint(metros, ControlType.kMAXMotionPositionControl);   
+
+        SmartDashboard.putNumber("encoder direito", encoderRightFront.getPosition());
+        SmartDashboard.putNumber("encoder esquedo", encoderLeftFront.getPosition());
 
         drive.feed();
     }

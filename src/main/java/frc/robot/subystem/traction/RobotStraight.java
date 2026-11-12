@@ -21,7 +21,7 @@ public class RobotStraight extends Command{
 
     @Override
     public void execute() {
-        tracao.andarDireto(inicio + Math.signum(metros));        
+        tracao.andarDireto(inicio + metros);        
     }
 
     // @Override
