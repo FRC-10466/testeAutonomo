@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.ResetMode;
+import com.revrobotics.RelativeEncoder;
 
 import com.revrobotics.PersistMode;
 
@@ -20,8 +21,11 @@ public class Drive extends SubsystemBase{
     public final SparkMax Rightback = new SparkMax(3,MotorType.kBrushed);
     public final SparkMax Leftback = new SparkMax(1, MotorType.kBrushed);
 
-    public final DifferentialDrive drive;
+    public final DifferentialDrive drive = new DifferentialDrive(Leftfront, Rightfront);
 
+    RelativeEncoder encoderRightFront = Rightfront.getEncoder();
+    RelativeEncoder encoderLeftFront = Leftfront.getEncoder();
+    
     private static final double VELOCIDADE_NORMAL = 0.7;
     private static final double VELOCIDADE_TURBO = 0.9;
 
@@ -42,8 +46,6 @@ public class Drive extends SubsystemBase{
 
         Rightfront.configure(RightConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         Leftfront.configure(LeftConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        drive = new DifferentialDrive(Leftfront, Rightfront);
         
         drive.setMaxOutput(VELOCIDADE_NORMAL);
     }
@@ -62,6 +64,11 @@ public class Drive extends SubsystemBase{
         Leftfront.set(velocidade);
         Rightfront.set(velocidade);
         drive.feed();
+    }
+
+    public double mediaAtual() {
+        double media = encoderLeftFront.getPosition() + encoderRightFront.getPosition();
+        return media / 2;
     }
 
     public void StopTraction(){
