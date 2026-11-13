@@ -27,6 +27,6 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return Commands.sequence( new RobotStraight(tracao, 2));
+    return Commands.sequence( new RobotStraight(tracao, 1));
   }
 }

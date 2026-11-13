@@ -44,11 +44,13 @@ public class Drive extends SubsystemBase{
 
         SparkMaxConfig RightBackConfig = new SparkMaxConfig ();
         RightBackConfig.follow(Rightfront);
-        Rightback.configure(RightBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        RightBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
+        Rightback.configure(RightBackConfig,ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
         SparkMaxConfig LeftBackConfig = new SparkMaxConfig ();
         LeftBackConfig.follow(Leftfront);
-        Leftback.configure(LeftBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        LeftBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
+        Leftback.configure(LeftBackConfig,ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
         RightConfig.inverted(true);
         RightConfig.encoder.inverted(true);
@@ -56,17 +58,19 @@ public class Drive extends SubsystemBase{
         RightConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
         LeftConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
 
-        RightConfig.closedLoop.pid(1, 0, 0.05).feedForward.kS(0.5);
-        LeftConfig.closedLoop.pid(1,0, 0.05).feedForward.kS(0.5);
+        RightConfig.closedLoop.pid(1.5, 0, 0.05).feedForward.kS(0.2);
+        LeftConfig.closedLoop.pid(1.5,0, 0.05).feedForward.kS(0.2);
+        LeftConfig.closedLoop.outputRange(0.4, -0.4);
+        RightConfig.closedLoop.outputRange(0.4, -0.4);
 
-        LeftConfig.closedLoop.allowedClosedLoopError(0.005, ClosedLoopSlot.kSlot0);
-        RightConfig.closedLoop.allowedClosedLoopError(0.005, ClosedLoopSlot.kSlot0);
+        LeftConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
+        RightConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
 
         LeftConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
         RightConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
 
-        LeftConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(Math.PI * 0.14 / 60);
-        RightConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(Math.PI * 0.14 / 60);
+        LeftConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(Math.PI * 0.1524 / 60).positionConversionFactor(Math.PI * 0.1524);
+        RightConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(Math.PI * 0.1524 / 60).positionConversionFactor(Math.PI * 0.1524);
 
         Rightfront.configure(RightConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         Leftfront.configure(LeftConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -90,13 +94,8 @@ public class Drive extends SubsystemBase{
     }
 
     public void andarDireto(double metros) {
-        resetarEncoder();
-
         pidM_Right.setSetpoint(metros, ControlType.kMAXMotionPositionControl);
         pidM_Left.setSetpoint(metros, ControlType.kMAXMotionPositionControl);   
-
-        SmartDashboard.putNumber("encoder direito", encoderRightFront.getPosition());
-        SmartDashboard.putNumber("encoder esquedo", encoderLeftFront.getPosition());
 
         drive.feed();
     }
@@ -108,6 +107,12 @@ public class Drive extends SubsystemBase{
 
     public void StopTraction(){
         drive.stopMotor();
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("encoder direito", encoderRightFront.getPosition());
+        SmartDashboard.putNumber("encoder esquedo", encoderLeftFront.getPosition());
     }
 
 }
