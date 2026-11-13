@@ -60,8 +60,8 @@ public class Drive extends SubsystemBase{
 
         RightConfig.closedLoop.pid(1.5, 0, 0.05).feedForward.kS(0.2);
         LeftConfig.closedLoop.pid(1.5,0, 0.05).feedForward.kS(0.2);
-        LeftConfig.closedLoop.outputRange(0.4, -0.4);
-        RightConfig.closedLoop.outputRange(0.4, -0.4);
+        LeftConfig.closedLoop.outputRange(-0.4, 0.4);
+        RightConfig.closedLoop.outputRange(-0.4, 0.4);
 
         LeftConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
         RightConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
@@ -93,9 +93,9 @@ public class Drive extends SubsystemBase{
         encoderRightFront.setPosition(0);
     }
 
-    public void andarDireto(double metros) {
-        pidM_Right.setSetpoint(metros, ControlType.kMAXMotionPositionControl);
-        pidM_Left.setSetpoint(metros, ControlType.kMAXMotionPositionControl);   
+    public void andarDireto(double alvoDir, double alvoEsq) {
+        pidM_Right.setSetpoint(alvoDir, ControlType.kMAXMotionPositionControl);
+        pidM_Left.setSetpoint(alvoEsq, ControlType.kMAXMotionPositionControl);   
 
         drive.feed();
     }

@@ -6,7 +6,8 @@ public class RobotStraight extends Command{
 
     private final Drive tracao;
     private final double metros;   
-    private double inicio;
+    private double alvoEsq;
+    private double alvoDir;
 
     public RobotStraight(Drive tracao, double metros) {
         this.tracao = tracao;
@@ -16,12 +17,13 @@ public class RobotStraight extends Command{
 
     @Override
     public void initialize() {
-        inicio = tracao.mediaAtual();
+        alvoEsq = tracao.encoderLeftFront.getPosition() + metros;
+        alvoDir = tracao.encoderRightFront.getPosition() + metros;
     }
 
     @Override
     public void execute() {
-        tracao.andarDireto(inicio + metros);        
+        tracao.andarDireto(alvoDir, alvoEsq);        
     }
 
     // @Override
