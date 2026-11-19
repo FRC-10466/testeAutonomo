@@ -21,11 +21,11 @@ import com.revrobotics.PersistMode;
 
 public class Drive extends SubsystemBase{
 
-    private final SparkMax Rightfront = new SparkMax(4,MotorType.kBrushed);
-    private final SparkMax Leftfront = new SparkMax(2, MotorType.kBrushed);
+    private final SparkMax Rightfront = new SparkMax(10,MotorType.kBrushed);
+    private final SparkMax Leftfront = new SparkMax(6, MotorType.kBrushed);
 
-    public final SparkMax Rightback = new SparkMax(3,MotorType.kBrushed);
-    public final SparkMax Leftback = new SparkMax(1, MotorType.kBrushed);
+    public final SparkMax Rightback = new SparkMax(12,MotorType.kBrushed);
+    public final SparkMax Leftback = new SparkMax(8, MotorType.kBrushed);
 
     public final DifferentialDrive drive = new DifferentialDrive(Leftfront, Rightfront);
 
@@ -45,12 +45,12 @@ public class Drive extends SubsystemBase{
         SparkMaxConfig RightBackConfig = new SparkMaxConfig ();
         RightBackConfig.follow(Rightfront);
         RightBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
-        Rightback.configure(RightBackConfig,ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        Rightback.configure(RightBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         SparkMaxConfig LeftBackConfig = new SparkMaxConfig ();
         LeftBackConfig.follow(Leftfront);
         LeftBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
-        Leftback.configure(LeftBackConfig,ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        Leftback.configure(LeftBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         RightConfig.inverted(true);
         RightConfig.encoder.inverted(true);
@@ -58,8 +58,8 @@ public class Drive extends SubsystemBase{
         RightConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
         LeftConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
 
-        RightConfig.closedLoop.pid(1.5, 0, 0.05).feedForward.kS(0.2);
-        LeftConfig.closedLoop.pid(1.5,0, 0.05).feedForward.kS(0.2);
+        RightConfig.closedLoop.pid(1.5, 0, 0.05).feedForward.kS(0.2).kV(12.0/5330);
+        LeftConfig.closedLoop.pid(1.5,0, 0.05).feedForward.kS(0.2).kV(12.0/5330);
         LeftConfig.closedLoop.outputRange(-0.4, 0.4);
         RightConfig.closedLoop.outputRange(-0.4, 0.4);
 
@@ -113,6 +113,16 @@ public class Drive extends SubsystemBase{
     public void periodic() {
         SmartDashboard.putNumber("encoder direito", encoderRightFront.getPosition());
         SmartDashboard.putNumber("encoder esquedo", encoderLeftFront.getPosition());
+    }
+
+    public void setVolts(double esquerda, double direita) {
+        Leftfront.setVoltage(esquerda);
+        Rightfront.setVoltage(direita);
+        drive.feed();
+    }
+
+    public double velocidadeMedia() {
+        return (encoderLeftFront.getVelocity() + encoderRightFront.getVelocity()) / 2.0;
     }
 
 }
