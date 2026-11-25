@@ -4,9 +4,7 @@ import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -16,18 +14,20 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.RelativeEncoder;
-
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.revrobotics.PersistMode;
 
 public class Drive extends SubsystemBase{
 
-    private final SparkMax Rightfront = new SparkMax(10,MotorType.kBrushed);
+    private final SparkMax Rightfront = new SparkMax(7,MotorType.kBrushed);
+    public final SparkMax Rightback = new SparkMax(5,MotorType.kBrushed);
+    
     private final SparkMax Leftfront = new SparkMax(6, MotorType.kBrushed);
-
-    public final SparkMax Rightback = new SparkMax(12,MotorType.kBrushed);
     public final SparkMax Leftback = new SparkMax(8, MotorType.kBrushed);
 
     public final DifferentialDrive drive = new DifferentialDrive(Leftfront, Rightfront);
+
+    Pigeon2 pigeon = new Pigeon2(20);
 
     RelativeEncoder encoderRightFront = Rightfront.getEncoder();
     RelativeEncoder encoderLeftFront = Leftfront.getEncoder();
@@ -52,16 +52,16 @@ public class Drive extends SubsystemBase{
         LeftBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
         Leftback.configure(LeftBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        RightConfig.inverted(true);
-        RightConfig.encoder.inverted(true);
-
         RightConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
         LeftConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
 
-        RightConfig.closedLoop.pid(1.5, 0, 0.05).feedForward.kS(0.2).kV(12.0/5330);
-        LeftConfig.closedLoop.pid(1.5,0, 0.05).feedForward.kS(0.2).kV(12.0/5330);
+        RightConfig.closedLoop.pid(1.5, 0, 0.05).feedForward.kV(3.39).kS(0.82);
+        LeftConfig.closedLoop.pid(1.5,0, 0.05).feedForward.kV(3.39).kS(0.82);
         LeftConfig.closedLoop.outputRange(-0.4, 0.4);
         RightConfig.closedLoop.outputRange(-0.4, 0.4);
+
+        RightConfig.inverted(true);
+        RightConfig.encoder.inverted(true);
 
         LeftConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
         RightConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
@@ -96,13 +96,11 @@ public class Drive extends SubsystemBase{
     public void andarDireto(double alvoDir, double alvoEsq) {
         pidM_Right.setSetpoint(alvoDir, ControlType.kMAXMotionPositionControl);
         pidM_Left.setSetpoint(alvoEsq, ControlType.kMAXMotionPositionControl);   
-
         drive.feed();
     }
 
     public double mediaAtual() {
-        double media = encoderLeftFront.getPosition() + encoderRightFront.getPosition();
-        return media / 2;
+        return encoderLeftFront.getPosition() + encoderRightFront.getPosition() / 2;
     }
 
     public void StopTraction(){
