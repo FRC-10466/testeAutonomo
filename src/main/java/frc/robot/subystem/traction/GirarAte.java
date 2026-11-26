@@ -38,10 +38,10 @@ public class GirarAte extends Command {
   }
 
   
-  @Override
-  public boolean isFinished() {
-    return pid.atSetpoint() && Math.abs(tracao.getVelocityGyro()) < 5;
-  }
+  // @Override
+  // public boolean isFinished() {
+  //   return pid.atSetpoint() && Math.abs(tracao.getVelocityGyro()) < 5;
+  // }
 
   @Override
   public void end(boolean interrupted) {

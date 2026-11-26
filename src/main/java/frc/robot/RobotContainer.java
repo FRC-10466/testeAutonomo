@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subystem.traction.Drive;
-import frc.robot.subystem.traction.RobotStraight;
+import frc.robot.subystem.traction.GirarAte;
 import frc.robot.subystem.traction.CaracterizarFF;
 
 public class RobotContainer {
@@ -28,6 +28,6 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return Commands.sequence(new RobotStraight(tracao, 1));
+    return Commands.sequence(new GirarAte(tracao, 120));
   }
 }

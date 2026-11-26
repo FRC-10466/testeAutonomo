@@ -6,13 +6,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 
 public class Gyroscopio {
 
-    Pigeon2 pigeon = new Pigeon2(20);
+    Pigeon2 pigeon = new Pigeon2(22);
 
     public Gyroscopio() {
         Pigeon2Configuration config = new Pigeon2Configuration();
-        config.MountPose.MountPoseYaw = 0;
-        config.MountPose.MountPoseRoll = 0;
-        config.MountPose.MountPosePitch = 0;
+        config.MountPose.MountPoseYaw = -90.61016845703125;
+        config.MountPose.MountPoseRoll = -0.3616531789302826;
+        config.MountPose.MountPosePitch = -0.9369150996208191;
         pigeon.getConfigurator().apply(config);
         pigeon.setYaw(0);
     }
