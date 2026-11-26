@@ -3,16 +3,17 @@ package frc.robot.subystem.traction;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.auto.Gyroscopio;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.ResetMode;
@@ -21,64 +22,54 @@ import com.revrobotics.PersistMode;
 
 public class Drive extends SubsystemBase{
 
-    Gyroscopio gyroscopio = new Gyroscopio();
-    DriveConstants constants = new DriveConstants();
+    private final StructPublisher<Pose2d> posePublisher = NetworkTableInstance.getDefault().getStructTopic("Odometria/Pose", Pose2d.struct).publish();
+    private final Gyroscopio gyroscopio = new Gyroscopio();
+    private final Field2d campo = new Field2d();
+    private DifferentialDriveOdometry odometria;
 
-    private final SparkMax Rightfront = new SparkMax(constants.ID_RIGHT_FRONT,MotorType.kBrushed);
-    public final SparkMax Rightback = new SparkMax(constants.ID_RIGHT_BACK,MotorType.kBrushed);
+    private final SparkMax Rightfront = new SparkMax(DriveConstants.ID_RIGHT_FRONT,MotorType.kBrushed);
+    public final SparkMax Rightback = new SparkMax(DriveConstants.ID_RIGHT_BACK,MotorType.kBrushed);
     
-    private final SparkMax Leftfront = new SparkMax(constants.ID_LEFT_FRONT, MotorType.kBrushed);
-    public final SparkMax Leftback = new SparkMax(constants.ID_LEFT_BACK, MotorType.kBrushed);
+    private final SparkMax Leftfront = new SparkMax(DriveConstants.ID_LEFT_FRONT, MotorType.kBrushed);
+    public final SparkMax Leftback = new SparkMax(DriveConstants.ID_LEFT_BACK, MotorType.kBrushed);
 
     public final DifferentialDrive drive = new DifferentialDrive(Leftfront, Rightfront);
 
     RelativeEncoder encoderRightFront = Rightfront.getEncoder();
     RelativeEncoder encoderLeftFront = Leftfront.getEncoder();
     
-    SparkClosedLoopController pidM_Right = Rightfront.getClosedLoopController();
-    SparkClosedLoopController pidM_Left = Leftfront.getClosedLoopController();
-
     public Drive() {
         SparkMaxConfig RightConfig = new SparkMaxConfig ();
         SparkMaxConfig LeftConfig = new SparkMaxConfig();
 
         SparkMaxConfig RightBackConfig = new SparkMaxConfig ();
         RightBackConfig.follow(Rightfront);
-        RightBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
+        RightBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(DriveConstants.COMPENSATION_VOLTAGE);
         Rightback.configure(RightBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         SparkMaxConfig LeftBackConfig = new SparkMaxConfig ();
         LeftBackConfig.follow(Leftfront);
-        LeftBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
+        LeftBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(DriveConstants.COMPENSATION_VOLTAGE);
         Leftback.configure(LeftBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        RightConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
-        LeftConfig.idleMode(IdleMode.kBrake).voltageCompensation(12);
-
-        RightConfig.closedLoop.pid(constants.P, constants.I, constants.D).feedForward.kV(constants.KV).kS(constants.KS);
-        LeftConfig.closedLoop.pid(constants.P,constants.I, constants.D).feedForward.kV(constants.KV).kS(constants.KS);
-        LeftConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
-        RightConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
-        LeftConfig.closedLoop.outputRange(-0.4, 0.4);
-        RightConfig.closedLoop.outputRange(-0.4, 0.4);
+        RightConfig.idleMode(IdleMode.kBrake).voltageCompensation(DriveConstants.COMPENSATION_VOLTAGE);
+        LeftConfig.idleMode(IdleMode.kBrake).voltageCompensation(DriveConstants.COMPENSATION_VOLTAGE);
 
         LeftConfig.inverted(true);
         RightConfig.encoder.inverted(true);
 
-        LeftConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
-        RightConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
-
-        LeftConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(constants.CONVERSAO_METROS_POR_SEG).positionConversionFactor(constants.CONVERSAO_METROS);
-        RightConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(constants.CONVERSAO_METROS_POR_SEG).positionConversionFactor(constants.CONVERSAO_METROS);
+        LeftConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(DriveConstants.CONVERSAO_METROS_POR_SEG).positionConversionFactor(DriveConstants.CONVERSAO_METROS);
+        RightConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(DriveConstants.CONVERSAO_METROS_POR_SEG).positionConversionFactor(DriveConstants.CONVERSAO_METROS);
 
         Rightfront.configure(RightConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         Leftfront.configure(LeftConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         
-        drive.setMaxOutput(constants.VELOCIDADE_NORMAL);
+        odometria = new DifferentialDriveOdometry(getAngulo(), encoderLeftFront.getPosition(), encoderRightFront.getPosition());
+        SmartDashboard.putData("Campo", campo);
     }
 
     public void setTurbo(boolean ligado) {
-        drive.setMaxOutput(ligado ? constants.VELOCIDADE_TURBO : constants.VELOCIDADE_NORMAL);
+        drive.setMaxOutput(ligado ? DriveConstants.VELOCIDADE_TURBO : DriveConstants.VELOCIDADE_NORMAL);
     }
 
     public Command commandTurbo() {
@@ -90,12 +81,6 @@ public class Drive extends SubsystemBase{
     public void resetarEncoder() {
         encoderLeftFront.setPosition(0);
         encoderRightFront.setPosition(0);
-    }
-
-    public void andarDireto(double alvoDir, double alvoEsq) {
-        pidM_Right.setSetpoint(alvoDir, ControlType.kMAXMotionPositionControl);
-        pidM_Left.setSetpoint(alvoEsq, ControlType.kMAXMotionPositionControl);   
-        drive.feed();
     }
 
     public double mediaAtual() {
@@ -114,12 +99,30 @@ public class Drive extends SubsystemBase{
         return gyroscopio.getVelocityGyro();
     }
 
+    public void zerarAngulo() {
+        gyroscopio.zerar();
+    }
+
+    public Pose2d getPose() {
+        return odometria.getPoseMeters();
+    }
+
+    public void resetarPose(Pose2d pose) {
+        odometria.resetPosition(getAngulo(),encoderLeftFront.getPosition(),encoderRightFront.getPosition(),pose);
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("encoder direito", encoderRightFront.getPosition());
         SmartDashboard.putNumber("encoder esquedo", encoderLeftFront.getPosition());
         SmartDashboard.putNumber("Angulo", gyroscopio.getAngulo().getDegrees());
         SmartDashboard.putNumber("Graus/seg", gyroscopio.getVelocityGyro());
+
+        posePublisher.set(getPose());
+        odometria.update(getAngulo(), encoderLeftFront.getPosition(), encoderRightFront.getPosition());
+        campo.setRobotPose(getPose());
+        SmartDashboard.putNumber("Pose X",getPose().getX());
+        SmartDashboard.putNumber("Pose Y", getPose().getY());
     }
 
     public void setVolts(double esquerda, double direita) {

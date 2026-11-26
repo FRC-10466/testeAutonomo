@@ -9,7 +9,7 @@ public class GirarAte extends Command {
  
   private final Drive tracao;
   private final double graus;
-  private final PIDController pid = new PIDController(0.15, 0, 0.01);
+  private final PIDController pid = new PIDController(0.15, 0, 0.02);
   private static final double KS_GIRO = 0.82;
   private double alvo;
 

@@ -5,6 +5,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subystem.traction.Drive;
+import frc.robot.subystem.traction.DriveConstants;
 
 public class AndarReto extends Command {
   private final Drive tracao;
@@ -13,7 +14,7 @@ public class AndarReto extends Command {
   private double anguloAlvo;
 
   private final TrapezoidProfile perfil = new TrapezoidProfile(new TrapezoidProfile.Constraints(1, 1));
-  private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.82, 3.39);
+  private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(DriveConstants.KS, DriveConstants.KV);
   private final PIDController pidDistance = new PIDController(8, 0, 0);
   private final PIDController pidHeading = new PIDController(0.1, 0,0);
 
