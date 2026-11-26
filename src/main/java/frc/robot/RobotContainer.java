@@ -19,8 +19,8 @@ public class RobotContainer {
 
   private void configureBindings() {
     tracao.setDefaultCommand(tracao.run(() -> {
-          double speed = MathUtil.applyDeadband(controle.getLeftY(), 0.1);
-          double rotacao = MathUtil.applyDeadband(controle.getRightX(), 0.1);
+          double speed = MathUtil.applyDeadband(-controle.getLeftY(), 0.1);
+          double rotacao = MathUtil.applyDeadband(-controle.getRightX() * 0.6, 0.1);
           tracao.drive.arcadeDrive(speed, rotacao);
         }));
     controle.a().toggleOnTrue(tracao.commandTurbo());

@@ -2,6 +2,8 @@ package frc.robot.subystem.traction;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
+
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -14,10 +16,11 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.RelativeEncoder;
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.revrobotics.PersistMode;
 
 public class Drive extends SubsystemBase{
+
+    Gyroscopio gyroscopio = new Gyroscopio();
 
     private final SparkMax Rightfront = new SparkMax(7,MotorType.kBrushed);
     public final SparkMax Rightback = new SparkMax(5,MotorType.kBrushed);
@@ -26,8 +29,6 @@ public class Drive extends SubsystemBase{
     public final SparkMax Leftback = new SparkMax(8, MotorType.kBrushed);
 
     public final DifferentialDrive drive = new DifferentialDrive(Leftfront, Rightfront);
-
-    Pigeon2 pigeon = new Pigeon2(20);
 
     RelativeEncoder encoderRightFront = Rightfront.getEncoder();
     RelativeEncoder encoderLeftFront = Leftfront.getEncoder();
@@ -57,17 +58,16 @@ public class Drive extends SubsystemBase{
 
         RightConfig.closedLoop.pid(1.5, 0, 0.05).feedForward.kV(3.39).kS(0.82);
         LeftConfig.closedLoop.pid(1.5,0, 0.05).feedForward.kV(3.39).kS(0.82);
+        LeftConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
+        RightConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
         LeftConfig.closedLoop.outputRange(-0.4, 0.4);
         RightConfig.closedLoop.outputRange(-0.4, 0.4);
 
-        RightConfig.inverted(true);
+        LeftConfig.inverted(true);
         RightConfig.encoder.inverted(true);
 
         LeftConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
         RightConfig.closedLoop.allowedClosedLoopError(0.02, ClosedLoopSlot.kSlot0);
-
-        LeftConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
-        RightConfig.closedLoop.maxMotion.cruiseVelocity(0.5).maxAcceleration(0.5);
 
         LeftConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(Math.PI * 0.1524 / 60).positionConversionFactor(Math.PI * 0.1524);
         RightConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(Math.PI * 0.1524 / 60).positionConversionFactor(Math.PI * 0.1524);
@@ -100,17 +100,27 @@ public class Drive extends SubsystemBase{
     }
 
     public double mediaAtual() {
-        return encoderLeftFront.getPosition() + encoderRightFront.getPosition() / 2;
+        return (encoderLeftFront.getPosition() + encoderRightFront.getPosition()) / 2;
     }
 
     public void StopTraction(){
         drive.stopMotor();
     }
 
+    public Rotation2d getAngulo() {
+        return gyroscopio.getAngulo();
+    }
+
+    public double getVelocityGyro() {
+        return gyroscopio.getVelocityGyro();
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("encoder direito", encoderRightFront.getPosition());
         SmartDashboard.putNumber("encoder esquedo", encoderLeftFront.getPosition());
+        SmartDashboard.putNumber("Angulo", gyroscopio.getAngulo().getDegrees());
+        SmartDashboard.putNumber("Graus/seg", gyroscopio.getVelocityGyro());
     }
 
     public void setVolts(double esquerda, double direita) {
