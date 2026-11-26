@@ -1,8 +1,9 @@
-package frc.robot.subystem.traction;
+package frc.robot.auto;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subystem.traction.Drive;
 
 public class GirarAte extends Command {
  
@@ -31,17 +32,17 @@ public class GirarAte extends Command {
     double erro = alvo - angulo;
     double volts = pid.calculate(angulo,alvo);
     if (Math.abs(erro) > 2) {
-      volts =+ KS_GIRO * Math.signum(erro);
+      volts += KS_GIRO * Math.signum(erro);
     }
     volts = MathUtil.clamp(volts, -6, 6);
     tracao.setVolts(-volts, volts);
   }
 
   
-  // @Override
-  // public boolean isFinished() {
-  //   return pid.atSetpoint() && Math.abs(tracao.getVelocityGyro()) < 5;
-  // }
+  @Override
+  public boolean isFinished() {
+    return pid.atSetpoint() && Math.abs(tracao.getVelocityGyro()) < 5;
+  }
 
   @Override
   public void end(boolean interrupted) {

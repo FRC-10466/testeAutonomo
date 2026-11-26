@@ -1,4 +1,4 @@
-package frc.robot.subystem.traction;
+package frc.robot.auto;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
