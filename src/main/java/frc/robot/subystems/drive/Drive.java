@@ -1,75 +1,63 @@
 package frc.robot.subystems.drive;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.PersistMode;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subystems.drive.DriveIO.DriveIOInputs;
+import frc.robot.subystems.drive.GyroIO.GyroIOInputs;
 
 public class Drive extends SubsystemBase{
 
+    private final DriveIO drive;
+    private final GyroIO gyro;
+
+    private final DriveIOInputs inputs = new DriveIO.DriveIOInputs();
+    private final GyroIOInputs gyroinputs = new GyroIO.GyroIOInputs();
+
     private final StructPublisher<Pose2d> posePublisher = NetworkTableInstance.getDefault().getStructTopic("Odometria/Pose", Pose2d.struct).publish();
-    private final GyroIO gyroscopio = new GyroIO();
-    private final Field2d campo = new Field2d();
-    private DifferentialDriveOdometry odometria;
+    private final DifferentialDriveOdometry odometria;
+    private Field2d campo;
 
-    private final SparkMax Rightfront = new SparkMax(DriveConstants.ID_RIGHT_FRONT,MotorType.kBrushed);
-    public final SparkMax Rightback = new SparkMax(DriveConstants.ID_RIGHT_BACK,MotorType.kBrushed);
-    
-    private final SparkMax Leftfront = new SparkMax(DriveConstants.ID_LEFT_FRONT, MotorType.kBrushed);
-    public final SparkMax Leftback = new SparkMax(DriveConstants.ID_LEFT_BACK, MotorType.kBrushed);
+    private double potenciaMaxima = DriveConstants.VELOCIDADE_TURBO;
 
-    public final DifferentialDrive drive = new DifferentialDrive(Leftfront, Rightfront);
+    public Drive(DriveIO drive, GyroIO gyro) {
+        this.drive = drive;
+        this.gyro = gyro;
 
-    RelativeEncoder encoderRightFront = Rightfront.getEncoder();
-    RelativeEncoder encoderLeftFront = Leftfront.getEncoder();
-    
-    public Drive() {
-        SparkMaxConfig RightConfig = new SparkMaxConfig ();
-        SparkMaxConfig LeftConfig = new SparkMaxConfig();
-
-        SparkMaxConfig RightBackConfig = new SparkMaxConfig ();
-        RightBackConfig.follow(Rightfront);
-        RightBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(DriveConstants.COMPENSATION_VOLTAGE);
-        Rightback.configure(RightBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        SparkMaxConfig LeftBackConfig = new SparkMaxConfig ();
-        LeftBackConfig.follow(Leftfront);
-        LeftBackConfig.idleMode(IdleMode.kBrake).voltageCompensation(DriveConstants.COMPENSATION_VOLTAGE);
-        Leftback.configure(LeftBackConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        RightConfig.idleMode(IdleMode.kBrake).voltageCompensation(DriveConstants.COMPENSATION_VOLTAGE);
-        LeftConfig.idleMode(IdleMode.kBrake).voltageCompensation(DriveConstants.COMPENSATION_VOLTAGE);
-
-        LeftConfig.inverted(true);
-        RightConfig.encoder.inverted(true);
-
-        LeftConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(DriveConstants.CONVERSAO_METROS_POR_SEG).positionConversionFactor(DriveConstants.CONVERSAO_METROS);
-        RightConfig.encoder.countsPerRevolution(8192).velocityConversionFactor(DriveConstants.CONVERSAO_METROS_POR_SEG).positionConversionFactor(DriveConstants.CONVERSAO_METROS);
-
-        Rightfront.configure(RightConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        Leftfront.configure(LeftConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        drive.updateInputs(inputs);
+        gyro.updateInputs(gyroinputs);
         
-        odometria = new DifferentialDriveOdometry(getAngulo(), encoderLeftFront.getPosition(), encoderRightFront.getPosition());
+        odometria = new DifferentialDriveOdometry(getAngulo(), inputs.positionLeft, inputs.positonRight);
         SmartDashboard.putData("Campo", campo);
     }
 
+    @Override
+    public void periodic() {
+        drive.updateInputs(inputs);
+        gyro.updateInputs(gyroinputs);
+
+        odometria.update(getAngulo(), inputs.positionLeft, inputs.positionLeft);
+        posePublisher.set(getPose());
+        campo.setRobotPose(getPose());
+
+        SmartDashboard.putNumber("encoder direito", inputs.positonRight);
+        SmartDashboard.putNumber("encoder esquedo", inputs.positionLeft);
+        SmartDashboard.putNumber("Angulo", getAngulo().getDegrees());
+        SmartDashboard.putNumber("Graus/seg", getVelocityGyro());
+        SmartDashboard.putNumber("Pose X",getPose().getX());
+        SmartDashboard.putNumber("Pose Y", getPose().getY());
+    }
+    
     public void setTurbo(boolean ligado) {
-        drive.setMaxOutput(ligado ? DriveConstants.VELOCIDADE_TURBO : DriveConstants.VELOCIDADE_NORMAL);
+        potenciaMaxima = ligado ? DriveConstants.VELOCIDADE_TURBO : DriveConstants.VELOCIDADE_NORMAL;
     }
 
     public Command commandTurbo() {
@@ -78,29 +66,33 @@ public class Drive extends SubsystemBase{
             () -> setTurbo(false) );
     }
 
-    public void resetarEncoder() {
-        encoderLeftFront.setPosition(0);
-        encoderRightFront.setPosition(0);
+    public void setVolts(double left, double Right) {
+        drive.setVolts(left, Right);
+    }
+
+    public void arcade(double straight,double rotation) {
+        var lados = DifferentialDrive.arcadeDriveIK(straight,rotation,true);
+        drive.setVolts(lados.left * potenciaMaxima * DriveConstants.COMPENSATION_VOLTAGE, lados.right * potenciaMaxima * DriveConstants.COMPENSATION_VOLTAGE);
     }
 
     public double mediaAtual() {
-        return (encoderLeftFront.getPosition() + encoderRightFront.getPosition()) / 2;
+        return (inputs.positionLeft + inputs.positonRight) / 2;
     }
 
-    public void StopTraction(){
-        drive.stopMotor();
+    public void parar(){
+        drive.setVolts(0, 0);
     }
 
     public Rotation2d getAngulo() {
-        return gyroscopio.getAngulo();
+        return gyroinputs.angulo;
     }
 
     public double getVelocityGyro() {
-        return gyroscopio.getVelocityGyro();
+        return gyroinputs.velocityGrausPorSeg;
     }
 
     public void zerarAngulo() {
-        gyroscopio.zerar();
+        gyro.zerar();
     }
 
     public Pose2d getPose() {
@@ -108,31 +100,11 @@ public class Drive extends SubsystemBase{
     }
 
     public void resetarPose(Pose2d pose) {
-        odometria.resetPosition(getAngulo(),encoderLeftFront.getPosition(),encoderRightFront.getPosition(),pose);
-    }
-
-    @Override
-    public void periodic() {
-        SmartDashboard.putNumber("encoder direito", encoderRightFront.getPosition());
-        SmartDashboard.putNumber("encoder esquedo", encoderLeftFront.getPosition());
-        SmartDashboard.putNumber("Angulo", gyroscopio.getAngulo().getDegrees());
-        SmartDashboard.putNumber("Graus/seg", gyroscopio.getVelocityGyro());
-
-        posePublisher.set(getPose());
-        odometria.update(getAngulo(), encoderLeftFront.getPosition(), encoderRightFront.getPosition());
-        campo.setRobotPose(getPose());
-        SmartDashboard.putNumber("Pose X",getPose().getX());
-        SmartDashboard.putNumber("Pose Y", getPose().getY());
-    }
-
-    public void setVolts(double esquerda, double direita) {
-        Leftfront.setVoltage(esquerda);
-        Rightfront.setVoltage(direita);
-        drive.feed();
+        odometria.resetPosition(getAngulo(),inputs.positionLeft, inputs.positonRight,pose);
     }
 
     public double velocidadeMedia() {
-        return (encoderLeftFront.getVelocity() + encoderRightFront.getVelocity()) / 2.0;
+        return (inputs.velocityLeft + inputs.velocityRight) / 2.0;
     }
 
 }

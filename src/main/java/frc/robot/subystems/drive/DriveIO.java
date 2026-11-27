@@ -16,4 +16,6 @@ public interface DriveIO {
     default void updateInputs(DriveIOInputs inputs) {}
 
     default void setVolts(double voltsLeft,double voltsRight) {}
+
+    default void periodic() {}
 }
