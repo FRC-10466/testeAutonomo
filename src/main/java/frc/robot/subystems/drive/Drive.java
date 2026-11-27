@@ -1,4 +1,4 @@
-package frc.robot.subystem.traction;
+package frc.robot.subystems.drive;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -23,7 +23,7 @@ import com.revrobotics.PersistMode;
 public class Drive extends SubsystemBase{
 
     private final StructPublisher<Pose2d> posePublisher = NetworkTableInstance.getDefault().getStructTopic("Odometria/Pose", Pose2d.struct).publish();
-    private final Gyroscopio gyroscopio = new Gyroscopio();
+    private final GyroIO gyroscopio = new GyroIO();
     private final Field2d campo = new Field2d();
     private DifferentialDriveOdometry odometria;
 

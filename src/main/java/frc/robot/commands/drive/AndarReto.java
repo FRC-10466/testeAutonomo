@@ -1,11 +1,11 @@
-package frc.robot.auto;
+package frc.robot.commands.drive;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subystem.traction.Drive;
-import frc.robot.subystem.traction.DriveConstants;
+import frc.robot.subystems.drive.Drive;
+import frc.robot.subystems.drive.DriveConstants;
 
 public class AndarReto extends Command {
   private final Drive tracao;

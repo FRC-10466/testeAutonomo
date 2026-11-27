@@ -6,10 +6,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.subystem.traction.Drive;
-import frc.robot.auto.AndarReto;
-import frc.robot.auto.GirarAte;
-import frc.robot.subystem.traction.CaracterizarFF;
+import frc.robot.commands.drive.AndarReto;
+import frc.robot.commands.drive.CaracterizarFF;
+import frc.robot.commands.drive.GirarAte;
+import frc.robot.subystems.drive.Drive;
 
 public class RobotContainer {
 
